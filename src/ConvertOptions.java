@@ -1,32 +1,34 @@
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.NumberFormat;
 import java.util.Locale;
-
+import io.github.cdimascio.dotenv.Dotenv;
 import static java.lang.String.format;
 
 public class ConvertOptions {
     private String from;
     private String to;
     private double amount;
+    private double converted;
     private final String endpoint;
 
     public ConvertOptions(String optionString) {
         parseOptionsFromOptionString(optionString);
-        String API_KEY = "3f9969bc3bf964163d72a89b";
+        Dotenv env = Dotenv.load();
+
+        String API_KEY = env.get("EXCHANGE_API_KEY");
         endpoint = format("https://v6.exchangerate-api.com/v6/%s/pair/", API_KEY);
     }
 
     public String getFrom(){ return from; }
     public String getTo(){ return to; }
+    public double getAmount() { return amount; }
+    public double getConverted() { return converted; }
 
     public void parseOptionsFromOptionString(@org.jetbrains.annotations.NotNull String optionString) {
         // USD >>> CLP
@@ -48,7 +50,7 @@ public class ConvertOptions {
             String req_result = json.getAsJsonObject().get("result").getAsString();
 
             if (req_result.equals("success")) {
-                double converted = json.getAsJsonObject().get("conversion_rate").getAsDouble() * amount;
+                converted = json.getAsJsonObject().get("conversion_rate").getAsDouble() * amount;
                 return converted;
             }
 
